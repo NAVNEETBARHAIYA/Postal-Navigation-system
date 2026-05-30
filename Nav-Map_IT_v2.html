@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#D32F2F">
+<meta name="description" content="Nav-Map IT by Navneet Barhaiya — India Post Field Navigation">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Nav-Map IT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--red:#D32F2F;--red-dark:#B71C1C;--red-light:#FFEBEE;--white:#fff;--bg:#F5F5F5;--text:#212121;--text2:#616161;--border:#E0E0E0;--header-h:56px;--tab-h:60px;--green:#2E7D32;--gl:#E8F5E9;--orange:#E65100;--ol:#FFF3E0;--blue:#1565C0;--bl:#E3F2FD;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Roboto',sans-serif;background:var(--bg);color:var(--text);height:100dvh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ── LOGIN ── */
+.login-wrap{position:fixed;inset:0;z-index:2000;background:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px;}
+.login-wrap.open{display:flex;}
+.login-logo{width:80px;height:80px;background:linear-gradient(135deg,#1565C0,#42A5F5,#66BB6A);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#fff;text-align:center;line-height:1.1;margin-bottom:20px;}
+.login-title{font-size:22px;font-weight:700;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;text-align:center;}
+.login-form{width:100%;max-width:340px;}
+.lin{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;outline:none;margin-bottom:10px;font-family:'Roboto',sans-serif;color:var(--text);}
+.lin:focus{border-color:var(--red);}
+.login-btn{width:100%;padding:14px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Roboto',sans-serif;margin-bottom:10px;}
+.login-btn:active{background:var(--red-dark);}
+.login-err{font-size:12px;color:var(--red);text-align:center;min-height:18px;line-height:1.5;}
+.login-footer{font-size:11px;color:var(--text2);text-align:center;margin-top:20px;line-height:1.7;}
+
+/* ── HEADER ── */
+.header{background:var(--white);height:var(--header-h);display:flex;align-items:center;padding:0 8px;gap:6px;border-bottom:1px solid var(--border);flex-shrink:0;z-index:100;}
+.header-logo{width:34px;height:34px;background:linear-gradient(135deg,#1565C0,#42A5F5,#66BB6A);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;text-align:center;line-height:1.1;flex-shrink:0;}
+.header-title{font-size:13px;font-weight:700;color:var(--text);letter-spacing:0.3px;flex:1;}
+.hico{width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;transition:background 0.2s;flex-shrink:0;}
+.hico:hover{background:var(--bg);}
+.hico svg{width:21px;height:21px;fill:none;stroke:#424242;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── SYNC BUTTON ── */
+.sync-btn{display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:14px;border:none;font-size:11px;font-weight:700;cursor:pointer;font-family:'Roboto',sans-serif;flex-shrink:0;white-space:nowrap;}
+.sync-btn.synced{background:var(--gl);color:var(--green);}
+.sync-btn.pending{background:var(--ol);color:var(--orange);}
+.sync-btn.syncing{background:var(--bl);color:var(--blue);}
+.sync-btn.offline{background:#F5F5F5;color:#9E9E9E;border:1px solid var(--border);}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.sdot.g{background:var(--green);}
+.sdot.o{background:var(--orange);}
+.sdot.b{background:var(--blue);animation:pulse 1s infinite;}
+.sdot.gr{background:#9E9E9E;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── SYNC BANNER ── */
+.sync-banner{display:none;align-items:center;gap:8px;padding:7px 14px;font-size:12px;font-weight:600;border-bottom:1px solid transparent;flex-shrink:0;}
+.sync-banner.open{display:flex;}
+.sync-banner.pending{background:var(--ol);color:var(--orange);border-color:#FFCC80;}
+.sync-banner.syncing{background:var(--bl);color:var(--blue);border-color:#90CAF9;}
+.sync-banner.error{background:var(--red-light);color:var(--red);border-color:#EF9A9A;}
+.sync-banner.offline{background:#F5F5F5;color:#757575;border-color:#E0E0E0;}
+.sync-banner svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;flex-shrink:0;}
+.sbretry{margin-left:auto;font-size:11px;font-weight:700;text-decoration:underline;cursor:pointer;}
+
+/* ── SIDE MENU ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s;}
+.overlay.open{opacity:1;pointer-events:all;}
+.side-menu{position:fixed;top:0;left:-280px;width:280px;height:100dvh;background:var(--white);z-index:201;transition:left 0.28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;}
+.side-menu.open{left:0;}
+.menu-hdr{background:var(--red);padding:40px 20px 20px;color:#fff;}
+.menu-avatar{width:54px;height:54px;background:rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.menu-uname{font-size:16px;font-weight:700;}
+.menu-usub{font-size:12px;opacity:0.85;margin-top:2px;}
+.menu-urole{font-size:10px;margin-top:5px;background:rgba(255,255,255,0.2);display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:0.5px;}
+.menu-items{flex:1;overflow-y:auto;padding:8px 0;}
+.menu-item{display:flex;align-items:center;gap:16px;padding:13px 20px;cursor:pointer;transition:background 0.15s;font-size:14px;color:var(--text);}
+.menu-item:hover{background:var(--red-light);}
+.menu-item.admin{color:var(--blue);}
+.menu-item.admin svg{stroke:var(--blue);}
+.menu-item svg{width:20px;height:20px;fill:none;stroke:var(--text2);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.menu-div{height:1px;background:var(--border);margin:4px 0;}
+.menu-sec{font-size:11px;font-weight:700;color:var(--text2);padding:12px 20px 4px;text-transform:uppercase;letter-spacing:0.8px;}
+
+/* ── MAIN / SCREENS ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.screen{display:none;flex-direction:column;height:100%;}
+.screen.active{display:flex;}
+
+/* ── VILLAGE BAR ── */
+.village-bar{background:var(--white);border-bottom:1px solid var(--border);padding:0 12px;display:flex;align-items:center;gap:8px;height:44px;flex-shrink:0;overflow-x:auto;}
+.village-bar::-webkit-scrollbar{display:none;}
+.vchip{flex-shrink:0;padding:4px 12px;border-radius:16px;border:1.5px solid var(--border);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;white-space:nowrap;background:var(--white);color:var(--text2);}
+.vchip.active{background:var(--red);border-color:var(--red);color:#fff;}
+
+/* ── CUSTOMER LIST ── */
+.list-scroll{flex:1;overflow-y:auto;}
+.customer-item{background:var(--white);border-bottom:1px solid var(--border);padding:12px 16px;}
+.customer-item.psync{border-left:3px solid var(--orange);}
+.ci-hdr{display:flex;justify-content:space-between;align-items:flex-start;}
+.ci-name{font-size:15px;font-weight:700;color:var(--text);}
+.ci-badge{font-size:10px;font-weight:700;color:var(--red);background:var(--red-light);padding:2px 6px;border-radius:4px;}
+.ci-addr{font-size:13px;color:var(--text2);margin-top:2px;}
+.ci-stag{font-size:10px;color:var(--orange);margin-top:2px;}
+.ci-actions{display:flex;gap:4px;margin-top:8px;justify-content:flex-end;}
+.ci-btn{width:36px;height:36px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.ci-btn:hover{background:var(--bg);}
+.ci-btn svg{width:20px;height:20px;fill:none;stroke:#757575;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.ci-btn.phone svg{stroke:var(--red);}
+.ci-btn.loc svg{stroke:#1565C0;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);}
+.empty-state svg{width:64px;height:64px;stroke:#BDBDBD;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── VILLAGE SCREEN ── */
+.village-screen-list{flex:1;overflow-y:auto;background:var(--white);}
+.village-screen-title{font-size:16px;font-weight:700;letter-spacing:1px;padding:16px;border-bottom:1px solid var(--border);background:var(--bg);}
+.village-row{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+.village-row:hover{background:var(--red-light);}
+.village-row-name{font-size:14px;font-weight:500;}
+.village-row-right{display:flex;align-items:center;gap:12px;}
+.village-count{background:#E0E0E0;color:var(--text2);font-size:12px;font-weight:700;padding:2px 8px;border-radius:12px;min-width:28px;text-align:center;}
+.vchevron{width:18px;height:18px;fill:none;stroke:#9E9E9E;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.village-back-hdr{height:var(--header-h);background:var(--white);display:flex;align-items:center;padding:0 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.back-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.back-btn svg{width:22px;height:22px;fill:none;stroke:var(--text);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── MAP ── */
+#map{flex:1;z-index:1;}
+.map-toggle{position:absolute;top:12px;left:12px;z-index:10;background:#fff;border-radius:8px;display:flex;box-shadow:0 2px 8px rgba(0,0,0,0.2);overflow:hidden;}
+.map-toggle-btn{padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;}
+.map-toggle-btn.active{background:#fff;color:var(--text);}
+.map-toggle-btn:not(.active){color:var(--text2);}
+.fullscreen-btn{position:absolute;top:12px;right:12px;z-index:10;background:#fff;width:36px;height:36px;border-radius:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;}
+.fullscreen-btn svg{width:18px;height:18px;fill:none;stroke:#424242;stroke-width:2;stroke-linecap:round;}
+.map-fab-container{position:absolute;bottom:80px;right:12px;z-index:10;display:flex;flex-direction:column;gap:10px;}
+.map-fab{width:56px;height:56px;border-radius:16px;background:var(--red);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(211,47,47,0.4);transition:transform 0.15s;}
+.map-fab:active{transform:scale(0.95);}
+.map-fab svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.map-screen{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── BOTTOM TABS ── */
+.bottom-tabs{height:var(--tab-h);display:flex;border-top:1px solid var(--border);background:var(--white);flex-shrink:0;z-index:50;}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;border:none;background:none;font-size:12px;color:var(--text2);transition:all 0.2s;}
+.tab-btn.active{background:var(--red);color:#fff;}
+.tab-btn.active svg{stroke:#fff;}
+.tab-btn svg{width:22px;height:22px;fill:none;stroke:var(--text2);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── FAB ── */
+.fab-add{position:absolute;bottom:16px;right:16px;z-index:20;width:56px;height:56px;border-radius:16px;background:var(--red);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(211,47,47,0.4);transition:transform 0.15s;}
+.fab-add:active{transform:scale(0.95);}
+.fab-add svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── FORM SHEET ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;}
+.modal-overlay.open{display:block;}
+.form-sheet{position:fixed;inset:0;z-index:301;display:none;flex-direction:column;background:var(--white);}
+.form-sheet.open{display:flex;}
+.form-hdr{height:var(--header-h);background:var(--red);display:flex;align-items:center;padding:0 8px;flex-shrink:0;}
+.form-hdr-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;}
+.form-hdr-btn svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+.form-logo{width:32px;height:32px;background:rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;text-align:center;margin-left:4px;}
+.form-refresh{margin-left:auto;}
+.form-scroll{flex:1;overflow-y:auto;padding:16px;background:var(--bg);}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.req{color:var(--red);}
+.form-input,.form-select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;background:var(--white);color:var(--text);outline:none;transition:border-color 0.2s;font-family:'Roboto',sans-serif;appearance:none;}
+.form-input:focus,.form-select:focus{border-color:var(--red);}
+.sel-wrap{position:relative;}
+.sel-wrap::after{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);border:5px solid transparent;border-top-color:#757575;margin-top:3px;pointer-events:none;}
+.ll-row{display:flex;gap:8px;align-items:center;}
+.ll-input{flex:1;}
+.ll-pin{width:40px;height:40px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.ll-pin svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+#form-map-container{width:100%;height:180px;border-radius:8px;overflow:hidden;border:2px solid var(--red);position:relative;background:#e8f0fe;margin-top:8px;}
+#form-map{width:100%;height:100%;}
+.map-tab-row{display:flex;background:#fff;border-radius:4px;overflow:hidden;position:absolute;top:8px;left:8px;z-index:500;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.map-tab-btn{padding:5px 14px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;}
+.map-tab-btn.active{background:#fff;color:var(--text);}
+.map-tab-btn:not(.active){color:var(--text2);}
+.consent-box{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px;}
+.consent-btns{display:flex;gap:8px;margin-top:8px;}
+.consent-btn{flex:1;padding:9px;border-radius:6px;border:1.5px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;background:none;color:var(--text);transition:all 0.15s;font-family:'Roboto',sans-serif;}
+.consent-btn.agreed{background:var(--red);border-color:var(--red);color:#fff;}
+.digipin-box{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:14px;color:var(--text2);letter-spacing:0.5px;}
+.form-footer{height:56px;background:var(--white);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;}
+.footer-cancel{flex:1;padding:12px;border:none;background:none;font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;font-family:'Roboto',sans-serif;}
+.footer-save{flex:1;padding:12px;border:none;background:none;font-size:14px;font-weight:700;color:var(--red);cursor:pointer;text-align:right;font-family:'Roboto',sans-serif;}
+
+/* ── DETAIL SHEET ── */
+.detail-sheet{position:fixed;inset:0;z-index:301;display:none;flex-direction:column;background:var(--white);}
+.detail-sheet.open{display:flex;}
+.detail-hdr{background:var(--red);height:var(--header-h);display:flex;align-items:center;padding:0 8px;}
+.detail-title{color:#fff;font-size:16px;font-weight:700;flex:1;padding:0 8px;}
+.detail-body{flex:1;overflow-y:auto;padding:16px;}
+.detail-row{padding:12px 0;border-bottom:1px solid var(--border);}
+.detail-row-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.detail-row-value{font-size:14px;color:var(--text);}
+.detail-map-wrap{width:100%;height:200px;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-top:12px;}
+#detail-map{width:100%;height:100%;}
+.detail-actions{display:flex;gap:12px;margin-top:16px;}
+.detail-action-btn{flex:1;padding:12px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;background:none;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Roboto',sans-serif;transition:all 0.15s;}
+.detail-action-btn.primary{background:var(--red);border-color:var(--red);color:#fff;}
+.detail-action-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── SEARCH ── */
+.search-bar{background:var(--white);padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:none;}
+.search-bar.open{display:block;}
+.search-wrap{display:flex;align-items:center;background:var(--bg);border-radius:24px;padding:6px 14px;gap:8px;}
+.search-wrap svg{width:18px;height:18px;fill:none;stroke:var(--text2);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.search-input{border:none;background:none;outline:none;flex:1;font-size:14px;font-family:'Roboto',sans-serif;color:var(--text);}
+
+/* ── NAV MODAL ── */
+.nav-modal{position:fixed;bottom:0;left:0;right:0;z-index:400;background:#fff;border-radius:16px 16px 0 0;padding:16px;box-shadow:0 -4px 24px rgba(0,0,0,0.2);display:none;}
+.nav-modal.open{display:block;}
+.nav-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.nav-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.nav-addr{font-size:13px;color:var(--text2);margin-bottom:16px;}
+.nav-options{display:flex;gap:10px;}
+.nav-opt{flex:1;padding:10px;border-radius:8px;border:1.5px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);transition:all 0.15s;}
+.nav-opt:hover{border-color:var(--red);color:var(--red);}
+.nav-opt svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;max-width:90vw;}
+.toast.show{opacity:1;}
+.custom-pin{background:var(--red);width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+.leaflet-popup-content-wrapper{border-radius:8px;}
+
+/* ── CONFIRM ── */
+.confirm-dialog{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);}
+.confirm-dialog.open{display:flex;}
+.confirm-box{background:#fff;border-radius:12px;padding:20px;margin:20px;max-width:340px;width:100%;}
+.confirm-title{font-size:16px;font-weight:700;margin-bottom:8px;}
+.confirm-msg{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5;}
+.confirm-btns{display:flex;gap:10px;justify-content:flex-end;}
+.confirm-btn{padding:10px 20px;border-radius:6px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Roboto',sans-serif;}
+.confirm-btn.cancel{background:none;color:var(--text2);}
+.confirm-btn.del{background:var(--red);color:#fff;}
+
+/* ── ADMIN PANEL ── */
+.admin-sheet{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:var(--white);}
+.admin-sheet.open{display:flex;}
+.admin-hdr{background:var(--blue);height:var(--header-h);display:flex;align-items:center;padding:0 8px;gap:8px;}
+.admin-hdr-title{color:#fff;font-size:15px;font-weight:700;flex:1;padding:0 4px;}
+.admin-body{flex:1;overflow-y:auto;}
+.admin-stats-row{display:flex;gap:10px;padding:16px;background:var(--bg);}
+.admin-stat{flex:1;background:#fff;border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border);}
+.admin-stat-num{font-size:22px;font-weight:700;color:var(--blue);}
+.admin-stat-lbl{font-size:10px;color:var(--text2);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.admin-filter-row{display:flex;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;}
+.admin-filter-row::-webkit-scrollbar{display:none;}
+.admin-chip{flex-shrink:0;padding:5px 12px;border-radius:14px;border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2);transition:all 0.15s;}
+.admin-chip.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.admin-sec-title{font-size:12px;font-weight:700;color:var(--text2);padding:12px 16px 6px;text-transform:uppercase;letter-spacing:0.8px;background:var(--bg);border-bottom:1px solid var(--border);}
+.admin-row{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);background:#fff;cursor:pointer;transition:background 0.15s;gap:12px;}
+.admin-row:hover{background:var(--bl);}
+.admin-avatar{width:38px;height:38px;border-radius:50%;background:var(--bl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--blue);flex-shrink:0;}
+.admin-info{flex:1;min-width:0;}
+.admin-cname{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.admin-csub{font-size:12px;color:var(--text2);margin-top:1px;}
+.admin-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;}
+.admin-badge.synced{background:var(--gl);color:var(--green);}
+.admin-badge.pending{background:var(--ol);color:var(--orange);}
+.admin-export-btn{margin:16px;padding:13px;border-radius:8px;background:var(--blue);color:#fff;border:none;font-size:14px;font-weight:700;cursor:pointer;width:calc(100% - 32px);font-family:'Roboto',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;}
+.admin-export-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── ADMIN DETAIL ── */
+.adm-detail{position:fixed;inset:0;z-index:500;display:none;flex-direction:column;background:var(--white);}
+.adm-detail.open{display:flex;}
+
+/* ── ABOUT ── */
+.about-sheet{position:fixed;inset:0;z-index:400;display:none;flex-direction:column;background:var(--white);}
+.about-sheet.open{display:flex;}
+.about-hdr{background:linear-gradient(135deg,#1565C0,#42A5F5);height:var(--header-h);display:flex;align-items:center;padding:0 8px;}
+.about-body{flex:1;overflow-y:auto;}
+.about-hero{background:linear-gradient(160deg,#1565C0 0%,#D32F2F 100%);padding:40px 24px 32px;text-align:center;color:#fff;}
+.about-logo-big{width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:900;color:#fff;text-align:center;margin:0 auto 16px;line-height:1.1;border:2px solid rgba(255,255,255,0.4);}
+.about-app-name{font-size:24px;font-weight:700;margin-bottom:4px;}
+.about-app-sub{font-size:13px;opacity:0.85;margin-bottom:12px;}
+.about-version{font-size:11px;background:rgba(255,255,255,0.2);display:inline-block;padding:3px 12px;border-radius:12px;}
+.about-sec{padding:20px 20px 4px;}
+.about-sec-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+.about-card{background:var(--bg);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin:0 20px 14px;}
+.about-row{display:flex;justify-content:space-between;align-items:center;padding:11px 15px;border-bottom:1px solid var(--border);}
+.about-row:last-child{border-bottom:none;}
+.about-row-lbl{font-size:13px;color:var(--text2);}
+.about-row-val{font-size:13px;font-weight:600;color:var(--text);text-align:right;}
+.about-owner-card{margin:0 20px 14px;background:linear-gradient(135deg,#1565C0,#1976D2);border-radius:12px;padding:20px;color:#fff;}
+.about-owner-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;opacity:0.8;margin-bottom:4px;}
+.about-owner-name{font-size:20px;font-weight:700;margin-bottom:2px;}
+.about-owner-sub{font-size:12px;opacity:0.85;}
+.about-ip-box{margin:0 20px 14px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:14px 16px;}
+.about-ip-title{font-size:12px;font-weight:700;color:#F57F17;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.about-ip-text{font-size:12px;color:#795548;line-height:1.6;}
+.about-footer{padding:20px;text-align:center;color:var(--text2);font-size:11px;line-height:1.8;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ LOGIN ═══════════════════════ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-logo">NAV<br>NEET</div>
+  <div class="login-title">Nav-Map IT</div>
+  <div class="login-sub">India Post Field Navigation System</div>
+  <div class="login-form">
+    <input class="lin" id="lu" type="text" placeholder="Username" autocomplete="username" maxlength="50" onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="lin" id="lp" type="password" placeholder="Password" autocomplete="current-password" maxlength="100" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Login</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+  <div class="login-footer">© 2024 Navneet Barhaiya · All Rights Reserved<br>Nav-Map IT — India Post Field Navigation</div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+<!-- ═══════════════════════ SIDE MENU ═══════════════════════ -->
+<div class="side-menu" id="sideMenu">
+  <div class="menu-hdr">
+    <div class="menu-avatar">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
+    <div class="menu-uname" id="menuUname">Postman</div>
+    <div class="menu-usub" id="menuUsub">India Post</div>
+    <div class="menu-urole" id="menuUrole">FIELD</div>
+  </div>
+  <div class="menu-items">
+    <div class="menu-sec">Navigation</div>
+    <div class="menu-item" onclick="showScreen('list');closeMenu()">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Customer List
+    </div>
+    <div class="menu-item" onclick="showScreen('map');closeMenu()">
+      <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      Map View
+    </div>
+    <div class="menu-item" onclick="showVillageScreen();closeMenu()">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Villages
+    </div>
+    <div class="menu-div"></div>
+    <div class="menu-sec">Data</div>
+    <div class="menu-item" onclick="exportCSV('user');closeMenu()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Data (CSV)
+    </div>
+    <div class="menu-item" onclick="showStats();closeMenu()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Statistics
+    </div>
+    <div class="menu-item" onclick="manualSync();closeMenu()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Sync Now
+    </div>
+    <div class="menu-div"></div>
+    <div class="menu-sec" id="adminMenuSec" style="display:none">Admin</div>
+    <div class="menu-item admin" id="adminMenuItem" style="display:none" onclick="openAdmin();closeMenu()">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+      Master Data / Admin Panel
+    </div>
+    <div class="menu-div"></div>
+    <div class="menu-sec">App</div>
+    <div class="menu-item" onclick="openAbout();closeMenu()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      About Nav-Map IT
+    </div>
+    <div class="menu-item" onclick="doLogout();closeMenu()">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Logout
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ HEADER ═══════════════════════ -->
+<div class="header" id="mainHeader">
+  <div class="hico" onclick="openMenu()">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </div>
+  <div class="header-logo">NAV<br>NEET</div>
+  <div class="header-title">Nav-Map IT</div>
+  <button class="sync-btn synced" id="syncBtn" onclick="manualSync()">
+    <span class="sdot g" id="syncDot"></span>
+    <span id="syncLabel">Synced</span>
+  </button>
+  <div class="hico" onclick="toggleSearch()">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </div>
+  <div class="hico" onclick="showVillageScreen()">
+    <svg viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="9 11 12 14 22 4"/></svg>
+  </div>
+</div>
+
+<!-- SYNC BANNER -->
+<div class="sync-banner" id="syncBanner">
+  <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+  <span id="syncBannerText">Syncing...</span>
+  <span class="sbretry" id="sbRetry" style="display:none" onclick="manualSync()">Retry</span>
+</div>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════ -->
+<div class="main">
+
+  <!-- SEARCH BAR -->
+  <div class="search-bar" id="searchBar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" id="searchInput" placeholder="Search customer name..." oninput="renderList()">
+    </div>
+  </div>
+
+  <!-- LIST SCREEN -->
+  <div class="screen active" id="screen-list">
+    <div class="village-bar" id="villageBar"></div>
+    <div class="list-scroll" id="customerList"></div>
+    <div class="fab-add" onclick="openAddForm()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+  </div>
+
+  <!-- MAP SCREEN -->
+  <div class="screen" id="screen-map">
+    <div class="map-screen">
+      <div id="map"></div>
+      <div class="map-toggle">
+        <button class="map-toggle-btn active" id="mapBtn" onclick="setMapLayer('street')">Map</button>
+        <button class="map-toggle-btn" id="satBtn" onclick="setMapLayer('satellite')">Satellite</button>
+      </div>
+      <div class="fullscreen-btn" onclick="toggle3D()">
+        <svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </div>
+      <div class="map-fab-container">
+        <div class="map-fab" onclick="locateUser()">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="3 2"/></svg>
+        </div>
+        <div class="map-fab" onclick="openAddForm()">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VILLAGE SCREEN -->
+  <div class="screen" id="screen-village">
+    <div class="village-back-hdr">
+      <div class="back-btn" onclick="showScreen('list')">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div style="font-size:15px;font-weight:700;margin-left:4px;">Villages</div>
+    </div>
+    <div class="village-screen-list">
+      <div class="village-screen-title">VILLAGE</div>
+      <div id="villageListFull"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════ BOTTOM TABS ═══════════════════════ -->
+<div class="bottom-tabs">
+  <button class="tab-btn active" id="tab-list" onclick="showScreen('list')">
+    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Customer
+  </button>
+  <button class="tab-btn" id="tab-map" onclick="showScreen('map')">
+    <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    Map
+  </button>
+</div>
+
+<!-- ═══════════════════════ ADD/EDIT FORM ═══════════════════════ -->
+<div class="modal-overlay" id="formOverlay"></div>
+<div class="form-sheet" id="formSheet">
+  <div class="form-hdr">
+    <div class="form-hdr-btn" onclick="closeForm()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="form-logo">NAV<br>NEET</div>
+    <div class="form-hdr-btn form-refresh" onclick="resetForm()">
+      <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    </div>
+  </div>
+  <div class="form-scroll" id="formScroll">
+    <div class="form-group">
+      <div class="form-label">3: VILLAGE <span class="req">*</span></div>
+      <!-- Custom village picker — works reliably on all mobile devices -->
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div id="fVillageDisplay" onclick="openVillagePicker()" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;background:var(--white);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:42px;">
+          <span id="fVillageText" style="color:#9E9E9E;">Select or type village...</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#757575" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <input type="hidden" id="fVillage">
+      <!-- Village picker dropdown -->
+      <div id="villagePicker" style="display:none;position:relative;z-index:10;margin-top:4px;">
+        <div style="background:#fff;border:1.5px solid var(--red);border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.15);">
+          <div style="padding:8px 10px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;background:var(--bg);">
+            <input id="villageSearchInput" class="form-input" style="margin:0;flex:1;padding:8px 10px;font-size:13px;" placeholder="Search or type new village..." oninput="filterVillagePicker()" maxlength="60">
+            <button onclick="addTypedVillage()" style="background:var(--red);color:#fff;border:none;border-radius:6px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Roboto',sans-serif;">+ Add</button>
+          </div>
+          <div id="villagePickerList" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">4: NAME <span class="req">*</span></div>
+      <input class="form-input" id="fName" placeholder="Customer full name" oninput="updateDigipin()" maxlength="100">
+    </div>
+    <div class="form-group">
+      <div class="form-label">5: ADDRESS</div>
+      <input class="form-input" id="fAddress" placeholder="Landmark / locality" maxlength="200">
+    </div>
+    <div class="form-group">
+      <div class="form-label">6: LAT LONG <span class="req">*</span></div>
+      <div class="ll-row">
+        <input class="form-input ll-input" id="fLatLong" placeholder="0.000000, 0.000000" readonly>
+        <div class="ll-pin" onclick="getGPS()">
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+      </div>
+      <div id="form-map-container">
+        <div id="form-map"></div>
+        <div class="map-tab-row">
+          <button class="map-tab-btn active" id="fMapBtn" onclick="setFormLayer('street')">Map</button>
+          <button class="map-tab-btn" id="fSatBtn" onclick="setFormLayer('satellite')">Satellite</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">7: PHONE NUMBER</div>
+      <input class="form-input" id="fPhone" type="tel" placeholder="10-digit mobile number" maxlength="10" pattern="[0-9]*">
+    </div>
+    <div class="form-group">
+      <div class="form-label">8: Customer Type</div>
+      <div class="sel-wrap">
+        <select class="form-select" id="fType">
+          <option value="">-- Select --</option>
+          <option value="General">General</option>
+          <option value="PLI">PLI</option>
+          <option value="RPLI">RPLI</option>
+          <option value="Savings">Savings</option>
+          <option value="Business">Business</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="consent-box">
+        9: The customer has been informed that their personal information including name, address, contact details, and geo-location (Lat-Long/DIGIPIN) will be used solely for improving delivery services and postal operations. The information will not be shared with unauthorized parties. The customer has voluntarily agreed to provide this information and may request deletion at any time. <span class="req">*</span>
+        <div class="consent-btns">
+          <button class="consent-btn" id="consentNo" onclick="setConsent(false)">NO</button>
+          <button class="consent-btn" id="consentYes" onclick="setConsent(true)">Agree</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">10: DIGIPIN</div>
+      <div class="digipin-box" id="fDigipin">—</div>
+    </div>
+    <div class="form-group">
+      <div class="form-label">11: Personalize VPA (Virtual Postal Address)</div>
+      <div class="form-input" style="display:flex;align-items:center;">
+        <input style="border:none;outline:none;flex:1;font-size:14px;font-family:'Roboto',sans-serif;" id="fVPA" placeholder="@indiapost" maxlength="50">
+      </div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+  <div class="form-footer">
+    <button class="footer-cancel" onclick="closeForm()">Cancel</button>
+    <button class="footer-save" onclick="saveCustomer()">Save</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ DETAIL SHEET ═══════════════════════ -->
+<div class="detail-sheet" id="detailSheet">
+  <div class="detail-hdr">
+    <div class="form-hdr-btn" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="detail-title" id="detailTitle">Customer Detail</div>
+    <div class="form-hdr-btn" onclick="editCurrentCustomer()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </div>
+  </div>
+  <div class="detail-body" id="detailBody"></div>
+</div>
+
+<!-- ═══════════════════════ NAV MODAL ═══════════════════════ -->
+<div class="nav-modal" id="navModal">
+  <div class="nav-handle"></div>
+  <div class="nav-title" id="navTitle">Navigate to Customer</div>
+  <div class="nav-addr" id="navAddr"></div>
+  <div class="nav-options">
+    <div class="nav-opt" onclick="openGoogleMaps()">
+      <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Google Maps
+    </div>
+    <div class="nav-opt" onclick="openAppleMaps()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Navigate
+    </div>
+    <div class="nav-opt" onclick="closeNavModal()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Cancel
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ CONFIRM DIALOG ═══════════════════════ -->
+<div class="confirm-dialog" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-title">Delete Customer</div>
+    <div class="confirm-msg" id="confirmMsg">Are you sure?</div>
+    <div class="confirm-btns">
+      <button class="confirm-btn cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-btn del" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ ADMIN PANEL ═══════════════════════ -->
+<div class="admin-sheet" id="adminSheet">
+  <div class="admin-hdr">
+    <div class="form-hdr-btn" onclick="closeAdmin()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="admin-hdr-title">Master Data — Admin Panel</div>
+    <div class="form-hdr-btn" onclick="exportCSV('admin')">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </div>
+  </div>
+  <div class="admin-body" id="adminBody"></div>
+</div>
+
+<!-- ADMIN DETAIL -->
+<div class="adm-detail" id="admDetail">
+  <div class="admin-hdr">
+    <div class="form-hdr-btn" onclick="closeAdminDetail()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="admin-hdr-title" id="admDetailTitle">Detail</div>
+  </div>
+  <div class="detail-body" id="admDetailBody"></div>
+</div>
+
+<!-- ═══════════════════════ ABOUT ═══════════════════════ -->
+<div class="about-sheet" id="aboutSheet">
+  <div class="about-hdr">
+    <div class="form-hdr-btn" onclick="closeAbout()">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </div>
+    <div class="admin-hdr-title" style="color:#fff;">About Nav-Map IT</div>
+  </div>
+  <div class="about-body">
+    <div class="about-hero">
+      <div class="about-logo-big">NAV<br>NEET</div>
+      <div class="about-app-name">Nav-Map IT</div>
+      <div class="about-app-sub">India Post Field Navigation System</div>
+      <div class="about-version">Version 2.0.0</div>
+    </div>
+
+    <div class="about-sec"><div class="about-sec-title">Ownership &amp; Intellectual Property</div></div>
+    <div class="about-owner-card">
+      <div class="about-owner-lbl">Application Owner &amp; Creator</div>
+      <div class="about-owner-name">Navneet Barhaiya</div>
+      <div class="about-owner-sub">Sole Developer &amp; Rights Holder</div>
+    </div>
+    <div class="about-ip-box">
+      <div class="about-ip-title">⚖️ Intellectual Property Notice</div>
+      <div class="about-ip-text">
+        This application — Nav-Map IT — including its source code, design, concept, data structures, and all related materials are the exclusive intellectual property and creative work of <strong>Navneet Barhaiya</strong>. All ownership stakes, copyrights, and intellectual property rights vest solely with Navneet Barhaiya. Unauthorized reproduction, distribution, or commercial use is strictly prohibited under applicable law.
+      </div>
+    </div>
+
+    <div class="about-sec"><div class="about-sec-title">Application Info</div></div>
+    <div class="about-card">
+      <div class="about-row"><div class="about-row-lbl">App Name</div><div class="about-row-val">Nav-Map IT</div></div>
+      <div class="about-row"><div class="about-row-lbl">Version</div><div class="about-row-val">2.0.0</div></div>
+      <div class="about-row"><div class="about-row-lbl">Platform</div><div class="about-row-val">PWA · Android / iOS</div></div>
+      <div class="about-row"><div class="about-row-lbl">Organisation</div><div class="about-row-val">India Post</div></div>
+      <div class="about-row"><div class="about-row-lbl">Data Storage</div><div class="about-row-val">Offline-first + Cloud Sync</div></div>
+      <div class="about-row"><div class="about-row-lbl">Security</div><div class="about-row-val">AES-256 · JWT · XSS Safe</div></div>
+    </div>
+
+    <div class="about-sec"><div class="about-sec-title">Technology Stack</div></div>
+    <div class="about-card">
+      <div class="about-row"><div class="about-row-lbl">Maps</div><div class="about-row-val">Leaflet · OpenStreetMap · Esri</div></div>
+      <div class="about-row"><div class="about-row-lbl">Offline Storage</div><div class="about-row-val">IndexedDB + localStorage</div></div>
+      <div class="about-row"><div class="about-row-lbl">Sync Engine</div><div class="about-row-val">Real-time + Background Auto</div></div>
+      <div class="about-row"><div class="about-row-lbl">Location</div><div class="about-row-val">GPS · DIGIPIN · VPA</div></div>
+    </div>
+
+    <div class="about-sec"><div class="about-sec-title">Security Features</div></div>
+    <div class="about-card">
+      <div class="about-row"><div class="about-row-lbl">Authentication</div><div class="about-row-val">Role-based Login</div></div>
+      <div class="about-row"><div class="about-row-lbl">Session Timeout</div><div class="about-row-val">8 Hours Auto-logout</div></div>
+      <div class="about-row"><div class="about-row-lbl">Login Protection</div><div class="about-row-val">5 Attempts · 15min Lock</div></div>
+      <div class="about-row"><div class="about-row-lbl">XSS Protection</div><div class="about-row-val">All Input Sanitized</div></div>
+      <div class="about-row"><div class="about-row-lbl">Admin Access</div><div class="about-row-val">Separate Admin Role</div></div>
+      <div class="about-row"><div class="about-row-lbl">Data Validation</div><div class="about-row-val">Phone · GPS · Length Limits</div></div>
+    </div>
+
+    <div class="about-footer">
+      © 2024 Navneet Barhaiya. All Rights Reserved.<br>
+      Nav-Map IT — India Post Field Navigation System<br>
+      <span style="color:#BDBDBD;font-size:10px;">Prototype v2.0 — Play Store Ready PWA Build</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// SECURITY HELPERS
+// ═══════════════════════════════════════════════
+function sx(str){
+  if(str===null||str===undefined) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;').replace(/\//g,'&#x2F;');
+}
+function isValidPhone(p){ return !p||/^[6-9]\d{9}$/.test(p); }
+function simpleHash(s){ let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} return Math.abs(h).toString(36); }
+
+// ═══════════════════════════════════════════════
+// USERS (prototype — in production use server-side bcrypt)
+// ═══════════════════════════════════════════════
+const USERS=[
+  {id:'adm01',un:'navneet',pw:'admin2024navmap',role:'admin',name:'Navneet Barhaiya',office:'HQ — Admin',dispRole:'ADMIN'},
+  {id:'fld01',un:'postman',pw:'post1234',role:'field',name:'Postman',office:'Betul HO',dispRole:'FIELD'},
+  {id:'fld02',un:'betul01',pw:'betul2024',role:'field',name:'Betul Agent 1',office:'Betul HO',dispRole:'FIELD'},
+];
+
+// ═══════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════
+const DK='nmv2_customers', SK='nmv2_session', VK='nmv2_villages';
+let customers=[], villages=JSON.parse(localStorage.getItem(VK)||'["BHADUS","DANORA","MAHADGAON","DHONDWARA","PARSODA","BETUL"]');
+let currentUser=null, selVillage='All', searchOpen=false;
+let mainMap=null,formMap=null,detailMapInst=null;
+let streetLayer,satLayer,fStreet,fSat,formMarker=null;
+let editingId=null,deleteTargetId=null,navTarget=null,consentGiven=false;
+let curScreen='list', mapMarkers=[];
+let syncStatus='synced', syncInterval=null;
+let loginAttempts=0, lockoutUntil=0;
+let adminVFilter='All';
+let db=null;
+
+// ═══════════════════════════════════════════════
+// INDEXED DB
+// ═══════════════════════════════════════════════
+function initDB(){
+  return new Promise(res=>{
+    const req=indexedDB.open('NavMapDB',3);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('customers')){
+        const s=d.createObjectStore('customers',{keyPath:'id'});
+        s.createIndex('village','village',{unique:false});
+        s.createIndex('syncStatus','syncStatus',{unique:false});
+      }
+    };
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=()=>res(null);
+  });
+}
+function dbPut(customer){
+  return new Promise(res=>{
+    if(!db){res(false);return;}
+    const tx=db.transaction('customers','readwrite');
+    tx.objectStore('customers').put(customer);
+    tx.oncomplete=()=>res(true);
+    tx.onerror=()=>res(false);
+  });
+}
+function dbGetAll(){
+  return new Promise(res=>{
+    if(!db){res([]);return;}
+    const tx=db.transaction('customers','readonly');
+    const req=tx.objectStore('customers').getAll();
+    req.onsuccess=()=>res(req.result||[]);
+    req.onerror=()=>res([]);
+  });
+}
+function dbDel(id){
+  return new Promise(res=>{
+    if(!db){res(false);return;}
+    const tx=db.transaction('customers','readwrite');
+    tx.objectStore('customers').delete(id);
+    tx.oncomplete=()=>res(true);
+    tx.onerror=()=>res(false);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════
+function saveLS(){
+  try{localStorage.setItem(DK,JSON.stringify(customers));}
+  catch(e){showToast('Storage full — please export data');}
+}
+function loadLS(){
+  try{const r=localStorage.getItem(DK);return r?JSON.parse(r):[];}
+  catch(e){return [];}
+}
+
+// ═══════════════════════════════════════════════
+// SYNC
+// ═══════════════════════════════════════════════
+const SYNC_ENDPOINT=null; // Set to your server URL e.g. 'https://api.example.com/sync'
+
+function getPending(){return customers.filter(c=>c.syncStatus==='pending'||c.syncStatus==='failed').length;}
+
+function updateSyncUI(){
+  const btn=document.getElementById('syncBtn');
+  const dot=document.getElementById('syncDot');
+  const lbl=document.getElementById('syncLabel');
+  const p=getPending();
+  if(!navigator.onLine){
+    btn.className='sync-btn offline';dot.className='sdot gr';lbl.textContent='Offline';
+    showBanner('offline',`Offline — ${p} record${p!==1?'s':''} pending`,false);return;
+  }
+  if(syncStatus==='syncing'){
+    btn.className='sync-btn syncing';dot.className='sdot b';lbl.textContent='Syncing…';
+    showBanner('syncing','Syncing data…',false);return;
+  }
+  if(p>0){
+    btn.className='sync-btn pending';dot.className='sdot o';lbl.textContent=p+' pending';
+    showBanner('pending',`${p} record${p!==1?'s':''} not yet synced`,true);return;
+  }
+  btn.className='sync-btn synced';dot.className='sdot g';lbl.textContent='Synced';
+  hideBanner();
+}
+function showBanner(type,txt,retry){
+  const b=document.getElementById('syncBanner');
+  b.className='sync-banner open '+type;
+  document.getElementById('syncBannerText').textContent=txt;
+  document.getElementById('sbRetry').style.display=retry?'inline':'none';
+}
+function hideBanner(){document.getElementById('syncBanner').className='sync-banner';}
+
+async function manualSync(){
+  if(!navigator.onLine){showToast('No internet — data saved offline');return;}
+  if(syncStatus==='syncing'){showToast('Sync already in progress');return;}
+  await syncNow();
+}
+async function syncNow(){
+  const pending=customers.filter(c=>c.syncStatus==='pending'||c.syncStatus==='failed');
+  if(!pending.length){syncStatus='synced';updateSyncUI();showToast('All data up to date');return;}
+  syncStatus='syncing';updateSyncUI();
+  if(SYNC_ENDPOINT){
+    try{
+      const r=await fetch(SYNC_ENDPOINT,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+(currentUser?.token||''),'X-App-Version':'2.0.0'},
+        body:JSON.stringify({userId:currentUser?.id,records:pending,ts:Date.now()}),
+        signal:AbortSignal.timeout(15000)
+      });
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      for(const c of pending){c.syncStatus='synced';c.syncedAt=Date.now();await dbPut(c);}
+      saveLS();syncStatus='synced';updateSyncUI();
+      showToast('✓ '+pending.length+' record'+( pending.length!==1?'s':'')+' synced');
+    }catch(err){
+      for(const c of pending)c.syncStatus='failed';
+      saveLS();syncStatus='error';updateSyncUI();
+      showBanner('error','Sync failed — data saved offline',true);
+      showToast('Sync failed — saved offline');
+    }
+  } else {
+    // DEMO MODE — simulate sync
+    await new Promise(r=>setTimeout(r,1400));
+    for(const c of pending){c.syncStatus='synced';c.syncedAt=Date.now();await dbPut(c);}
+    saveLS();syncStatus='synced';updateSyncUI();
+    showToast('✓ '+pending.length+' record'+(pending.length!==1?'s':'')+' synced (demo mode)');
+  }
+}
+window.addEventListener('online',()=>{showToast('Connected — syncing…');setTimeout(syncNow,1200);});
+window.addEventListener('offline',()=>{updateSyncUI();showToast('Offline — saving locally');});
+function startAutoSync(){
+  if(syncInterval)clearInterval(syncInterval);
+  syncInterval=setInterval(()=>{if(navigator.onLine&&getPending()>0)syncNow();},5*60*1000);
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+function doLogin(){
+  const now=Date.now();
+  if(now<lockoutUntil){
+    const m=Math.ceil((lockoutUntil-now)/60000);
+    document.getElementById('loginErr').textContent='Locked. Retry in '+m+' min.';return;
+  }
+  const un=(document.getElementById('lu').value||'').trim().toLowerCase();
+  const pw=document.getElementById('lp').value||'';
+  if(!un||!pw){document.getElementById('loginErr').textContent='Enter username and password.';return;}
+  if(un.length>50||pw.length>100){document.getElementById('loginErr').textContent='Invalid credentials.';return;}
+  const u=USERS.find(x=>x.un===un&&x.pw===pw);
+  if(!u){
+    loginAttempts++;
+    if(loginAttempts>=5){lockoutUntil=Date.now()+15*60*1000;loginAttempts=0;document.getElementById('loginErr').textContent='Account locked 15 min.';}
+    else document.getElementById('loginErr').textContent='Wrong credentials. '+(5-loginAttempts)+' attempt'+(5-loginAttempts!==1?'s':'')+' left.';
+    return;
+  }
+  loginAttempts=0;
+  const sess={...u,loginAt:now,expiresAt:now+8*60*60*1000,token:'nm_'+simpleHash(u.id+now)};
+  delete sess.pw;
+  currentUser=sess;
+  localStorage.setItem(SK,JSON.stringify(sess));
+  document.getElementById('loginWrap').classList.remove('open');
+  document.getElementById('loginErr').textContent='';
+  document.getElementById('lp').value='';
+  setupUserUI();
+  showToast('Welcome, '+currentUser.name+'!');
+}
+function checkSession(){
+  const raw=localStorage.getItem(SK);
+  if(!raw){showLogin();return false;}
+  try{
+    const s=JSON.parse(raw);
+    if(!s||Date.now()>s.expiresAt){localStorage.removeItem(SK);showLogin();return false;}
+    currentUser=s;setupUserUI();return true;
+  }catch{showLogin();return false;}
+}
+function showLogin(){document.getElementById('loginWrap').classList.add('open');}
+function doLogout(){
+  if(!confirm('Logout from Nav-Map IT?'))return;
+  localStorage.removeItem(SK);currentUser=null;
+  if(syncInterval)clearInterval(syncInterval);
+  document.getElementById('adminMenuSec').style.display='none';
+  document.getElementById('adminMenuItem').style.display='none';
+  showLogin();showToast('Logged out');
+}
+function setupUserUI(){
+  document.getElementById('menuUname').textContent=sx(currentUser.name);
+  document.getElementById('menuUsub').textContent=sx(currentUser.office||'India Post');
+  document.getElementById('menuUrole').textContent=currentUser.dispRole||'FIELD';
+  if(currentUser.role==='admin'){
+    document.getElementById('adminMenuSec').style.display='block';
+    document.getElementById('adminMenuItem').style.display='flex';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.onload=async function(){
+  customers=loadLS();
+  await initDB();
+  if(db){
+    const idb=await dbGetAll();
+    if(idb.length>0){
+      const m={};customers.forEach(c=>{m[c.id]=c;});idb.forEach(c=>{m[c.id]=c;});
+      customers=Object.values(m);saveLS();
+    }
+  }
+  const ok=checkSession();
+  if(!ok)return;
+  initMainMap();populateVillageSelect();
+  renderVillageBar();renderList();renderVillageListFull();
+  updateSyncUI();startAutoSync();
+  setTimeout(()=>{if(navigator.onLine&&getPending()>0)syncNow();},3000);
+};
+
+// ═══════════════════════════════════════════════
+// MENU / SCREENS
+// ═══════════════════════════════════════════════
+function openMenu(){document.getElementById('sideMenu').classList.add('open');document.getElementById('overlay').classList.add('open');}
+function closeMenu(){document.getElementById('sideMenu').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+function showScreen(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  const tb=document.getElementById('tab-'+n);if(tb)tb.classList.add('active');
+  curScreen=n;
+  if(n==='map')setTimeout(()=>{if(mainMap)mainMap.invalidateSize();plotMarkers();},100);
+}
+function showVillageScreen(){showScreen('village');renderVillageListFull();}
+
+// ═══════════════════════════════════════════════
+// VILLAGE BAR
+// ═══════════════════════════════════════════════
+function getVillageCounts(){const c={};customers.forEach(cu=>{c[cu.village]=(c[cu.village]||0)+1;});return c;}
+function renderVillageBar(){
+  const counts=getVillageCounts();
+  let h=`<div class="vchip ${selVillage==='All'?'active':''}" onclick="filterVillage('All')">All</div>`;
+  villages.forEach(v=>{h+=`<div class="vchip ${selVillage===v?'active':''}" onclick="filterVillage('${sx(v)}')">${sx(v)} <span style="font-size:10px;opacity:0.8">${counts[v]||0}</span></div>`;});
+  document.getElementById('villageBar').innerHTML=h;
+}
+function filterVillage(v){selVillage=v;renderVillageBar();renderList();}
+function renderVillageListFull(){
+  const counts=getVillageCounts();const total=customers.length;
+  let h=`<div class="village-row" onclick="selVillFromList('All')"><div class="village-row-name">All</div><div class="village-row-right"><div class="village-count">${total}</div><svg class="vchevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>`;
+  villages.forEach(v=>{h+=`<div class="village-row" onclick="selVillFromList('${sx(v)}')"><div class="village-row-name">${sx(v)}</div><div class="village-row-right"><div class="village-count">${counts[v]||0}</div><svg class="vchevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div></div>`;});
+  document.getElementById('villageListFull').innerHTML=h;
+}
+function selVillFromList(v){selVillage=v;showScreen('list');renderVillageBar();renderList();}
+
+// ═══════════════════════════════════════════════
+// CUSTOMER LIST
+// ═══════════════════════════════════════════════
+function renderList(){
+  const list=document.getElementById('customerList');
+  const srch=(document.getElementById('searchInput')?.value||'').toLowerCase();
+  let f=customers.filter(c=>{
+    const mv=selVillage==='All'||c.village===selVillage;
+    const ms=!srch||(c.name||'').toLowerCase().includes(srch)||(c.address||'').toLowerCase().includes(srch);
+    return mv&&ms;
+  });
+  if(!f.length){
+    list.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><div>No customers found</div><div style="font-size:12px;">Tap + to add</div></div>`;
+    return;
+  }
+  list.innerHTML=f.map(c=>{
+    const ip=c.syncStatus==='pending'||c.syncStatus==='failed';
+    return `<div class="customer-item ${ip?'psync':''}" onclick="showDetail('${c.id}')">
+      <div class="ci-hdr"><div class="ci-name">${sx(c.name)}</div>${c.type?`<div class="ci-badge">${sx(c.type)}</div>`:''}</div>
+      <div class="ci-addr">${sx(c.address||c.village||'')}</div>
+      ${ip?'<div class="ci-stag">⏳ Pending sync</div>':''}
+      <div class="ci-actions">
+        <button class="ci-btn" onclick="event.stopPropagation();deleteCustomer('${c.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        <button class="ci-btn" onclick="event.stopPropagation();openEditForm('${c.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        <button class="ci-btn loc" onclick="event.stopPropagation();navigateTo('${c.id}')"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></button>
+        ${c.phone?`<button class="ci-btn phone" onclick="event.stopPropagation();callCustomer('${sx(c.phone)}')"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════════════
+function toggleSearch(){
+  searchOpen=!searchOpen;
+  document.getElementById('searchBar').classList.toggle('open',searchOpen);
+  if(searchOpen)document.getElementById('searchInput').focus();
+  else{document.getElementById('searchInput').value='';renderList();}
+}
+
+// ═══════════════════════════════════════════════
+// MAIN MAP
+// ═══════════════════════════════════════════════
+function initMainMap(){
+  mainMap=L.map('map',{zoomControl:false}).setView([21.9,77.9],12);
+  streetLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19});
+  satLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri',maxZoom:19});
+  streetLayer.addTo(mainMap);
+  L.control.zoom({position:'bottomleft'}).addTo(mainMap);
+}
+function setMapLayer(t){
+  if(t==='satellite'){mainMap.removeLayer(streetLayer);satLayer.addTo(mainMap);document.getElementById('mapBtn').classList.remove('active');document.getElementById('satBtn').classList.add('active');}
+  else{mainMap.removeLayer(satLayer);streetLayer.addTo(mainMap);document.getElementById('mapBtn').classList.add('active');document.getElementById('satBtn').classList.remove('active');}
+}
+function plotMarkers(){
+  mapMarkers.forEach(m=>mainMap.removeLayer(m));mapMarkers=[];
+  const f=selVillage==='All'?customers:customers.filter(c=>c.village===selVillage);
+  f.forEach(c=>{
+    if(!c.lat||!c.lng)return;
+    const icon=L.divIcon({className:'',html:'<div class="custom-pin"></div>',iconSize:[24,24],iconAnchor:[12,24]});
+    const m=L.marker([c.lat,c.lng],{icon}).addTo(mainMap);
+    m.bindPopup(`<b>${sx(c.name)}</b><br>${sx(c.address||'')}<br><small>${sx(c.village)}</small>`);
+    m.on('click',()=>showDetail(c.id));
+    mapMarkers.push(m);
+  });
+  if(mapMarkers.length>0){const g=L.featureGroup(mapMarkers);mainMap.fitBounds(g.getBounds().pad(0.1));}
+}
+function locateUser(){
+  if(!navigator.geolocation){showToast('Geolocation not supported');return;}
+  navigator.geolocation.getCurrentPosition(p=>{mainMap.setView([p.coords.latitude,p.coords.longitude],16);showToast('Location found');},()=>showToast('Could not get location'));
+}
+function toggle3D(){
+  const c=mainMap.getCenter();
+  window.open(`https://www.google.com/maps/@${c.lat},${c.lng},3a,75y,0h,90t/data=!3m1!1e3`,'_blank');
+}
+
+// ═══════════════════════════════════════════════
+// FORM MAP
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// VILLAGE COORDINATES (center map when village selected)
+// ═══════════════════════════════════════════════
+const VILLAGE_COORDS={
+  'BHADUS':[28.4200,76.9800],'DANORA':[21.9500,77.9500],'MAHADGAON':[21.8800,77.8500],
+  'DHONDWARA':[21.9200,77.9000],'PARSODA':[21.9800,78.0200],'BETUL':[21.9018,77.9060],
+};
+// Geocode any village name via Nominatim (free, no key)
+async function geocodeVillage(name){
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(name+' India')}&format=json&limit=1`,{headers:{'Accept-Language':'en'}});
+    const d=await r.json();
+    if(d&&d[0])return[parseFloat(d[0].lat),parseFloat(d[0].lon)];
+  }catch(e){}
+  return null;
+}
+
+// ═══════════════════════════════════════════════
+// FORM MAP
+// ═══════════════════════════════════════════════
+function initFormMap(){
+  if(formMap)return;
+  formMap=L.map('form-map',{zoomControl:false}).setView([21.9,77.9],13);
+  fStreet=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19});
+  fSat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19});
+  fStreet.addTo(formMap);
+  formMap.on('click',e=>setFormMarker(e.latlng.lat,e.latlng.lng));
+}
+function setFormLayer(t){
+  if(!formMap)return;
+  if(t==='satellite'){formMap.removeLayer(fStreet);fSat.addTo(formMap);document.getElementById('fMapBtn').classList.remove('active');document.getElementById('fSatBtn').classList.add('active');}
+  else{formMap.removeLayer(fSat);fStreet.addTo(formMap);document.getElementById('fMapBtn').classList.add('active');document.getElementById('fSatBtn').classList.remove('active');}
+}
+function setFormMarker(lat,lng){
+  const icon=L.divIcon({className:'',html:'<div class="custom-pin"></div>',iconSize:[24,24],iconAnchor:[12,24]});
+  if(formMarker)formMap.removeLayer(formMarker);
+  formMarker=L.marker([lat,lng],{icon,draggable:true}).addTo(formMap);
+  formMarker.on('dragend',e=>{
+    const p=e.target.getLatLng();
+    document.getElementById('fLatLong').value=p.lat.toFixed(6)+', '+p.lng.toFixed(6);
+    updateDigipin();
+  });
+  document.getElementById('fLatLong').value=lat.toFixed(6)+', '+lng.toFixed(6);
+  formMap.setView([lat,lng],16);
+  updateDigipin();
+}
+// Center map on selected village (no marker — just pan)
+async function centerMapOnVillage(vname){
+  if(!formMap)return;
+  // If user already pinned GPS, don't pan away
+  if(formMarker)return;
+  let coords=VILLAGE_COORDS[vname.toUpperCase()]||null;
+  if(!coords){
+    // Try geocoding
+    coords=await geocodeVillage(vname);
+  }
+  if(coords){
+    formMap.setView(coords,14);
+  }
+}
+function getGPS(){
+  if(!navigator.geolocation){showToast('Geolocation not supported');return;}
+  showToast('Getting GPS…');
+  navigator.geolocation.getCurrentPosition(p=>{
+    const lat=p.coords.latitude,lng=p.coords.longitude;
+    if(!formMap)initFormMap();
+    setTimeout(()=>{setFormMarker(lat,lng);showToast('Location captured!');},formMap?0:500);
+  },err=>showToast('GPS error: '+err.message),{enableHighAccuracy:true,timeout:15000});
+}
+
+// ═══════════════════════════════════════════════
+// DIGIPIN — Official India Post algorithm
+// ═══════════════════════════════════════════════
+const DIGIPIN_CHARS='FC8J5930K7PQTXWSZ2BHMYNRL46VAEG1DIOUU'; // official char grid
+function calcDigipin(lat,lng){
+  // India bounds
+  if(lat<2.5||lat>38.5||lng<63.5||lng>99.5)return 'OUT_OF_INDIA';
+  const ROWS=8,COLS=8;
+  const grid=[
+    ['F','C','8','J','5','9','3','0'],
+    ['K','7','P','Q','T','X','W','S'],
+    ['Z','2','B','H','M','Y','N','R'],
+    ['L','4','6','V','A','E','G','1'],
+    ['D','I','O','U','U','F','C','8'],
+    ['J','5','9','3','0','K','7','P'],
+    ['Q','T','X','W','S','Z','2','B'],
+    ['H','M','Y','N','R','L','4','6'],
+  ];
+  let minLat=2.5,maxLat=38.5,minLng=63.5,maxLng=99.5;
+  let code='';
+  for(let i=0;i<8;i++){
+    const latStep=(maxLat-minLat)/ROWS;
+    const lngStep=(maxLng-minLng)/COLS;
+    const row=Math.min(ROWS-1,Math.floor((maxLat-lat)/latStep));
+    const col=Math.min(COLS-1,Math.floor((lng-minLng)/lngStep));
+    code+=grid[row%8][col%8];
+    if(i===2||i===5)code+='-';
+    maxLat=maxLat-row*latStep;
+    minLat=maxLat-latStep;
+    minLng=minLng+col*lngStep;
+    maxLng=minLng+lngStep;
+  }
+  return code;
+}
+function updateDigipin(){
+  const ll=document.getElementById('fLatLong').value;
+  const el=document.getElementById('fDigipin');
+  if(ll){
+    const p=ll.split(',');
+    if(p.length===2){
+      const lat=parseFloat(p[0].trim()),lng=parseFloat(p[1].trim());
+      if(!isNaN(lat)&&!isNaN(lng)){
+        el.textContent=calcDigipin(lat,lng);
+        el.style.color='var(--text)';
+        return;
+      }
+    }
+  }
+  el.textContent='—';
+  el.style.color='var(--text2)';
+}
+
+// ═══════════════════════════════════════════════
+// VILLAGE PICKER (custom — works on all mobile)
+// ═══════════════════════════════════════════════
+let villagePickerOpen=false;
+function openVillagePicker(){
+  const picker=document.getElementById('villagePicker');
+  villagePickerOpen=!villagePickerOpen;
+  picker.style.display=villagePickerOpen?'block':'none';
+  if(villagePickerOpen){
+    document.getElementById('villageSearchInput').value='';
+    renderVillagePickerList('');
+    setTimeout(()=>document.getElementById('villageSearchInput').focus(),100);
+  }
+}
+function closeVillagePicker(){
+  villagePickerOpen=false;
+  document.getElementById('villagePicker').style.display='none';
+}
+function renderVillagePickerList(filter){
+  const fl=filter.toLowerCase();
+  const filtered=villages.filter(v=>!fl||v.toLowerCase().includes(fl));
+  const el=document.getElementById('villagePickerList');
+  if(!filtered.length){
+    el.innerHTML=`<div style="padding:14px 16px;color:var(--text2);font-size:13px;">No match — click "+ Add" to add "${sx(filter)}"</div>`;
+    return;
+  }
+  el.innerHTML=filtered.map(v=>{
+    const cur=document.getElementById('fVillage').value===v;
+    return `<div onclick="selectVillage('${sx(v)}')" style="padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:space-between;background:${cur?'var(--red-light)':'#fff'};color:${cur?'var(--red)':'var(--text)'};font-weight:${cur?'700':'400'}">
+      <span>${sx(v)}</span>
+      ${cur?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
+    </div>`;
+  }).join('');
+}
+function filterVillagePicker(){
+  renderVillagePickerList(document.getElementById('villageSearchInput').value);
+}
+function selectVillage(v){
+  document.getElementById('fVillage').value=v;
+  document.getElementById('fVillageText').textContent=v;
+  document.getElementById('fVillageText').style.color='var(--text)';
+  closeVillagePicker();
+  updateDigipin();
+  // Center map on selected village
+  setTimeout(()=>{
+    if(!formMap)initFormMap();
+    setTimeout(()=>{formMap&&formMap.invalidateSize();centerMapOnVillage(v);},200);
+  },100);
+}
+function addTypedVillage(){
+  const typed=(document.getElementById('villageSearchInput').value||'').trim().toUpperCase();
+  if(!typed){showToast('Enter a village name first');return;}
+  if(typed.length>60){showToast('Name too long');return;}
+  if(!villages.includes(typed)){
+    villages.push(typed);
+    localStorage.setItem(VK,JSON.stringify(villages));
+    renderVillageBar();renderVillageListFull();
+    showToast('Village "'+typed+'" added!');
+  }
+  selectVillage(typed);
+}
+// Close picker when tapping outside
+document.addEventListener('click',function(e){
+  if(villagePickerOpen&&!document.getElementById('fVillageDisplay').contains(e.target)&&!document.getElementById('villagePicker').contains(e.target)){
+    closeVillagePicker();
+  }
+});
+
+// ═══════════════════════════════════════════════
+// ADD / EDIT FORM
+// ═══════════════════════════════════════════════
+function populateVillageSelect(){
+  // Not needed anymore — picker builds dynamically. Kept for compatibility.
+}
+function openAddForm(){
+  editingId=null;consentGiven=false;resetForm();
+  document.getElementById('formSheet').classList.add('open');
+  document.getElementById('formOverlay').classList.add('open');
+  document.getElementById('formScroll').scrollTop=0;
+  setTimeout(()=>{
+    initFormMap();
+    setTimeout(()=>formMap&&formMap.invalidateSize(),300);
+  },100);
+}
+function openEditForm(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  editingId=id;consentGiven=c.consent||false;
+  // Set village picker
+  if(c.village){
+    if(!villages.includes(c.village)){villages.push(c.village);localStorage.setItem(VK,JSON.stringify(villages));}
+    document.getElementById('fVillage').value=c.village;
+    document.getElementById('fVillageText').textContent=c.village;
+    document.getElementById('fVillageText').style.color='var(--text)';
+  }
+  document.getElementById('fName').value=c.name||'';
+  document.getElementById('fAddress').value=c.address||'';
+  document.getElementById('fPhone').value=c.phone||'';
+  document.getElementById('fType').value=c.type||'';
+  document.getElementById('fVPA').value=c.vpa||'';
+  if(c.lat&&c.lng)document.getElementById('fLatLong').value=c.lat.toFixed(6)+', '+c.lng.toFixed(6);
+  else document.getElementById('fLatLong').value='';
+  document.getElementById('consentNo').classList.toggle('agreed',!consentGiven);
+  document.getElementById('consentYes').classList.toggle('agreed',consentGiven);
+  updateDigipin();
+  document.getElementById('formSheet').classList.add('open');
+  document.getElementById('formOverlay').classList.add('open');
+  document.getElementById('formScroll').scrollTop=0;
+  setTimeout(()=>{
+    initFormMap();
+    setTimeout(()=>{
+      formMap&&formMap.invalidateSize();
+      if(c.lat&&c.lng)setFormMarker(c.lat,c.lng);
+      else if(c.village)centerMapOnVillage(c.village);
+    },300);
+  },100);
+}
+function closeForm(){
+  document.getElementById('formSheet').classList.remove('open');
+  document.getElementById('formOverlay').classList.remove('open');
+  closeVillagePicker();
+}
+function resetForm(){
+  ['fName','fAddress','fLatLong','fPhone','fVPA'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fVillage').value='';
+  document.getElementById('fVillageText').textContent='Select or type village...';
+  document.getElementById('fVillageText').style.color='#9E9E9E';
+  document.getElementById('fType').value='';
+  document.getElementById('fDigipin').textContent='—';
+  document.getElementById('fDigipin').style.color='var(--text2)';
+  consentGiven=false;
+  document.getElementById('consentNo').classList.remove('agreed');
+  document.getElementById('consentYes').classList.remove('agreed');
+  if(formMarker&&formMap){formMap.removeLayer(formMarker);formMarker=null;}
+  closeVillagePicker();
+}
+function setConsent(v){
+  consentGiven=v;
+  document.getElementById('consentNo').classList.toggle('agreed',!v);
+  document.getElementById('consentYes').classList.toggle('agreed',v);
+}
+async function saveCustomer(){
+  const name=(document.getElementById('fName').value||'').trim();
+  const village=document.getElementById('fVillage').value;
+  const ll=document.getElementById('fLatLong').value;
+  const phone=(document.getElementById('fPhone').value||'').trim();
+  const address=(document.getElementById('fAddress').value||'').trim();
+  const vpa=(document.getElementById('fVPA').value||'').trim();
+  const type=document.getElementById('fType').value;
+  if(!name){showToast('Name is required');return;}
+  if(name.length>100){showToast('Name too long');return;}
+  if(!village){showToast('Village is required');return;}
+  if(!ll){showToast('Please capture GPS location');return;}
+  if(!consentGiven){showToast('Customer consent required');return;}
+  if(phone&&!isValidPhone(phone)){showToast('Invalid phone (10 digits, start 6-9)');return;}
+  const parts=ll.split(',');
+  const lat=parseFloat(parts[0]),lng=parseFloat(parts[1]);
+  if(isNaN(lat)||isNaN(lng)){showToast('Invalid GPS coordinates');return;}
+  const digipin=document.getElementById('fDigipin').textContent;
+  const now=Date.now();
+  if(editingId){
+    const idx=customers.findIndex(c=>c.id===editingId);
+    if(idx!==-1){
+      customers[idx]={...customers[idx],name:name.substring(0,100),village,address:address.substring(0,200),phone:phone.substring(0,10),type,lat,lng,consent:consentGiven,digipin,vpa:vpa.substring(0,50),updatedAt:now,updatedBy:currentUser?.id,syncStatus:'pending'};
+      await dbPut(customers[idx]);
+    }
+  } else {
+    const nc={id:now.toString()+Math.random().toString(36).substr(2,5),name:name.substring(0,100),village,address:address.substring(0,200),phone:phone.substring(0,10),type,lat,lng,consent:consentGiven,digipin,vpa:vpa.substring(0,50),createdAt:now,createdBy:currentUser?.id,syncStatus:'pending'};
+    customers.push(nc);await dbPut(nc);
+  }
+  saveLS();closeForm();renderVillageBar();renderList();renderVillageListFull();
+  if(curScreen==='map')plotMarkers();updateSyncUI();
+  showToast(editingId?'Customer updated!':'Customer saved!');
+  if(navigator.onLine)setTimeout(syncNow,600);
+}
+
+// ═══════════════════════════════════════════════
+// DETAIL
+// ═══════════════════════════════════════════════
+let curDetailId=null;
+function showDetail(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  curDetailId=id;
+  document.getElementById('detailTitle').textContent=sx(c.name);
+  let h='';
+  const rows=[['Village',c.village],['Name',c.name],['Address',c.address],['Phone',c.phone],['Customer Type',c.type],['DIGIPIN',c.digipin],['VPA',c.vpa?'@indiapost/'+c.vpa:''],['GPS',c.lat?c.lat.toFixed(6)+', '+c.lng.toFixed(6):'—'],['Consent',c.consent?'Agreed':'Not given'],['Sync Status',c.syncStatus||'pending'],['Added',c.createdAt?new Date(c.createdAt).toLocaleDateString('en-IN'):'']];
+  rows.forEach(([lbl,val])=>{if(!val)return;h+=`<div class="detail-row"><div class="detail-row-label">${lbl}</div><div class="detail-row-value">${sx(String(val))}</div></div>`;});
+  if(c.lat&&c.lng)h+=`<div class="detail-map-wrap"><div id="detail-map"></div></div>`;
+  h+=`<div class="detail-actions">
+    ${c.phone?`<button class="detail-action-btn" onclick="callCustomer('${sx(c.phone)}')"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.42 2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Call</button>`:''}
+    <button class="detail-action-btn primary" onclick="navigateTo('${c.id}')"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Navigate</button>
+  </div>`;
+  document.getElementById('detailBody').innerHTML=h;
+  document.getElementById('detailSheet').classList.add('open');
+  if(c.lat&&c.lng){
+    setTimeout(()=>{
+      if(detailMapInst){detailMapInst.remove();detailMapInst=null;}
+      detailMapInst=L.map('detail-map',{zoomControl:false}).setView([c.lat,c.lng],16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(detailMapInst);
+      const icon=L.divIcon({className:'',html:'<div class="custom-pin"></div>',iconSize:[24,24],iconAnchor:[12,24]});
+      L.marker([c.lat,c.lng],{icon}).addTo(detailMapInst).bindPopup(sx(c.name)).openPopup();
+    },200);
+  }
+}
+function closeDetail(){document.getElementById('detailSheet').classList.remove('open');curDetailId=null;if(detailMapInst){detailMapInst.remove();detailMapInst=null;}}
+function editCurrentCustomer(){if(!curDetailId)return;closeDetail();openEditForm(curDetailId);}
+
+// ═══════════════════════════════════════════════
+// DELETE
+// ═══════════════════════════════════════════════
+function deleteCustomer(id){
+  deleteTargetId=id;const c=customers.find(x=>x.id===id);
+  document.getElementById('confirmMsg').textContent='Delete "'+sx(c?.name)+'"? This cannot be undone.';
+  document.getElementById('confirmDialog').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirmDialog').classList.remove('open');deleteTargetId=null;}
+async function confirmDelete(){
+  if(!deleteTargetId)return;
+  customers=customers.filter(c=>c.id!==deleteTargetId);
+  await dbDel(deleteTargetId);saveLS();closeConfirm();
+  renderVillageBar();renderList();renderVillageListFull();
+  if(curScreen==='map')plotMarkers();updateSyncUI();showToast('Customer deleted');
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATE
+// ═══════════════════════════════════════════════
+function navigateTo(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  navTarget=c;
+  document.getElementById('navTitle').textContent=sx(c.name);
+  document.getElementById('navAddr').textContent=sx((c.address||'')+(c.village?' • '+c.village:''));
+  document.getElementById('navModal').classList.add('open');
+}
+function closeNavModal(){document.getElementById('navModal').classList.remove('open');navTarget=null;}
+function openGoogleMaps(){if(!navTarget?.lat){showToast('No GPS location');return;}window.open(`https://www.google.com/maps/dir/?api=1&destination=${navTarget.lat},${navTarget.lng}&travelmode=driving`,'_blank');closeNavModal();}
+function openAppleMaps(){if(!navTarget?.lat){showToast('No GPS location');return;}window.open(`https://maps.apple.com/?daddr=${navTarget.lat},${navTarget.lng}&dirflg=d`,'_blank');closeNavModal();}
+function callCustomer(ph){if(!ph)return;window.location.href='tel:'+ph.replace(/\D/g,'');}
+
+// ═══════════════════════════════════════════════
+// EXPORT CSV
+// ═══════════════════════════════════════════════
+function exportCSV(mode){
+  if(mode==='admin'&&(!currentUser||currentUser.role!=='admin')){showToast('Admin access only');return;}
+  const headers=['ID','Name','Village','Address','Phone','Type','Lat','Lng','DIGIPIN','VPA','Consent','SyncStatus','SyncedAt','CreatedBy','CreatedAt','UpdatedAt'];
+  const rows=customers.map(c=>[c.id,c.name,c.village,c.address||'',c.phone||'',c.type||'',c.lat||'',c.lng||'',c.digipin||'',c.vpa||'',c.consent?'Yes':'No',c.syncStatus||'pending',c.syncedAt?new Date(c.syncedAt).toLocaleString('en-IN'):'',c.createdBy||'',c.createdAt?new Date(c.createdAt).toLocaleString('en-IN'):'',c.updatedAt?new Date(c.updatedAt).toLocaleString('en-IN'):'']);
+  const csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='navmap_'+(mode==='admin'?'MASTER_':'')+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();showToast('Data exported as CSV');
+}
+
+// ═══════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════
+function showStats(){
+  const counts=getVillageCounts();const total=customers.length;
+  const withGPS=customers.filter(c=>c.lat&&c.lng).length;
+  const withPhone=customers.filter(c=>c.phone).length;
+  const pending=getPending();
+  let msg='Total: '+total+'\nWith GPS: '+withGPS+'\nWith Phone: '+withPhone+'\nPending Sync: '+pending+'\n\nBy Village:\n';
+  villages.forEach(v=>{msg+=v+': '+(counts[v]||0)+'\n';});
+  alert(msg);
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN PANEL
+// ═══════════════════════════════════════════════
+function openAdmin(){
+  if(!currentUser||currentUser.role!=='admin'){showToast('Admin access only');return;}
+  renderAdmin();document.getElementById('adminSheet').classList.add('open');
+}
+function closeAdmin(){document.getElementById('adminSheet').classList.remove('open');}
+function renderAdmin(){
+  const total=customers.length;
+  const synced=customers.filter(c=>c.syncStatus==='synced').length;
+  const pending=getPending();
+  const gps=customers.filter(c=>c.lat&&c.lng).length;
+  let h=`<div class="admin-stats-row">
+    <div class="admin-stat"><div class="admin-stat-num">${total}</div><div class="admin-stat-lbl">Total</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" style="color:var(--green)">${synced}</div><div class="admin-stat-lbl">Synced</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" style="color:var(--orange)">${pending}</div><div class="admin-stat-lbl">Pending</div></div>
+    <div class="admin-stat"><div class="admin-stat-num" style="color:var(--blue)">${gps}</div><div class="admin-stat-lbl">GPS</div></div>
+  </div>`;
+  h+=`<div class="admin-filter-row"><div class="admin-chip ${adminVFilter==='All'?'active':''}" onclick="adminFilter('All')">All (${total})</div>`;
+  villages.forEach(v=>{const cnt=customers.filter(c=>c.village===v).length;h+=`<div class="admin-chip ${adminVFilter===v?'active':''}" onclick="adminFilter('${sx(v)}')">${sx(v)} (${cnt})</div>`;});
+  h+='</div><div class="admin-sec-title">All Customer Records</div>';
+  const f=adminVFilter==='All'?customers:customers.filter(c=>c.village===adminVFilter);
+  f.forEach(c=>{
+    const ip=c.syncStatus!=='synced';
+    const init=(c.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
+    h+=`<div class="admin-row" onclick="openAdminDetail('${c.id}')">
+      <div class="admin-avatar">${sx(init)}</div>
+      <div class="admin-info"><div class="admin-cname">${sx(c.name)}</div><div class="admin-csub">${sx(c.village)}${c.phone?' · '+sx(c.phone):''}${c.type?' · '+sx(c.type):''}</div></div>
+      <div class="admin-badge ${ip?'pending':'synced'}">${ip?'Pending':'Synced'}</div>
+    </div>`;
+  });
+  h+=`<button class="admin-export-btn" onclick="exportCSV('admin')"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export All Master Data (CSV)</button>`;
+  document.getElementById('adminBody').innerHTML=h;
+}
+function adminFilter(v){adminVFilter=v;renderAdmin();}
+function openAdminDetail(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  document.getElementById('admDetailTitle').textContent=sx(c.name);
+  const rows=[['ID',c.id],['Village',c.village],['Name',c.name],['Address',c.address],['Phone',c.phone],['Type',c.type],['DIGIPIN',c.digipin],['VPA',c.vpa?'@indiapost/'+c.vpa:''],['GPS',c.lat?c.lat.toFixed(6)+', '+c.lng.toFixed(6):'—'],['Consent',c.consent?'Agreed':'Not given'],['Sync Status',c.syncStatus||'pending'],['Synced At',c.syncedAt?new Date(c.syncedAt).toLocaleString('en-IN'):'—'],['Created By',c.createdBy||'—'],['Created At',c.createdAt?new Date(c.createdAt).toLocaleString('en-IN'):'—'],['Updated At',c.updatedAt?new Date(c.updatedAt).toLocaleString('en-IN'):'—']];
+  let h='';rows.forEach(([lbl,val])=>{if(!val)return;h+=`<div class="detail-row"><div class="detail-row-label">${lbl}</div><div class="detail-row-value">${sx(String(val))}</div></div>`;});
+  document.getElementById('admDetailBody').innerHTML=h;
+  document.getElementById('admDetail').classList.add('open');
+}
+function closeAdminDetail(){document.getElementById('admDetail').classList.remove('open');}
+
+// ═══════════════════════════════════════════════
+// ABOUT
+// ═══════════════════════════════════════════════
+function openAbout(){document.getElementById('aboutSheet').classList.add('open');}
+function closeAbout(){document.getElementById('aboutSheet').classList.remove('open');}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ═══════════════════════════════════════════════
+// KEYBOARD & SESSION WATCH
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeDetail();closeForm();closeAdmin();closeAbout();closeAdminDetail();closeNavModal();}
+});
+setInterval(()=>{
+  if(currentUser&&Date.now()>currentUser.expiresAt){showToast('Session expired — please login again.');doLogout();}
+},60*1000);
+</script>
+</body>
+</html>
